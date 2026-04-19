@@ -1,6 +1,6 @@
 <div align="center">
 
-# Cinema meme
+# Cinema
 
 <img src="assets/meme.png" alt="Example Absolute Cinema style meme" width="520" />
 
@@ -15,10 +15,7 @@
 
 ---
 
-A single-page tool built around the Martin Scorsese reaction image: set custom top and bottom lines, optionally replace the face with your own photo, and download the result. Typography and placement are tuned to approximate the familiar meme look—bold sans-serif type, spacing, and text positioned on the jacket.
-
-
-
+A single-page tool built around the Martin Scorsese reaction image: set custom top and bottom lines, optionally replace the face with your own photo, and download the result. 
 ---
 
 ## Run locally
