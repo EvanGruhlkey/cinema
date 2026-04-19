@@ -5,7 +5,7 @@
 <img src="assets/meme.png" alt="Example Absolute Cinema style meme" width="520" />
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/OWNER/cinema?label=stars&style=flat)](https://github.com/OWNER/cinema/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/EvanGruhlkey/cinema?label=stars&style=flat)](https://github.com/EvanGruhlkey/cinema/stargazers)
 
 [Run locally](#run-locally) · [How it works](#how-it-works)
 
