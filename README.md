@@ -4,22 +4,20 @@
 
 <img src="assets/meme.png" alt="Example Absolute Cinema style meme" width="520" />
 
-**Browser-based generator for two-line captions, optional face replacement, and PNG export.**
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/OWNER/cinema?label=stars&style=flat)](https://github.com/OWNER/cinema/stargazers)
 
 [Run locally](#run-locally) · [How it works](#how-it-works)
 
 </div>
 
+
+
 ---
 
 A single-page tool built around the Martin Scorsese reaction image: set custom top and bottom lines, optionally replace the face with your own photo, and download the result. Typography and placement are tuned to approximate the familiar meme look—bold sans-serif type, spacing, and text positioned on the jacket.
 
-| | |
-|---|---|
-| **Two-line text** | Smaller top line, larger bottom line; optional single-field input with automatic split into two lines. |
-| **Custom head** | Upload a photo, masked to an ellipse over the face. Drag the oval to reposition; use the corner handle to resize. |
-| **PNG export** | Saves the canvas. Use a local HTTP server if the browser blocks downloads when opening files directly from disk. |
-| **On-canvas editing** | Face region is adjusted on the preview; no separate control panel for position or scale. |
+
 
 ---
 
