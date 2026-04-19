@@ -1,0 +1,27 @@
+{
+  "name": "cinema",
+  "version": "1.0.0",
+  "description": "Cinema meme generator",
+  "main": "index.js",
+  "scripts": {
+    "build:bg": "esbuild scripts/remove-bg-entry.mjs --bundle --format=esm --outfile=assets/remove-bg.mjs --platform=browser",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EvanGruhlkey/cinema.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/EvanGruhlkey/cinema/issues"
+  },
+  "homepage": "https://github.com/EvanGruhlkey/cinema#readme",
+  "devDependencies": {
+    "@imgly/background-removal": "^1.7.0",
+    "esbuild": "^0.24.0",
+    "onnxruntime-web": "^1.21.0"
+  }
+}

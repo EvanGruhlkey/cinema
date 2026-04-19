@@ -119,12 +119,6 @@
       color: var(--text);
       border: 1px solid var(--border);
     }
-    .hint {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin: 0.5rem 0 0;
-      line-height: 1.45;
-    }
     .preview-wrap {
       background: #000;
       border-radius: 12px;
@@ -148,28 +142,25 @@
     <div class="controls-stack">
     <div class="panel">
       <h2>Text</h2>
-      <label for="line1">Top line <span style="opacity:0.7">(smaller)</span></label>
+      <label for="line1">Top</label>
       <input type="text" id="line1" value="ABSOLUTE" autocomplete="off" spellcheck="true" />
-      <label for="line2">Bottom line <span style="opacity:0.7">(larger)</span></label>
+      <label for="line2">Bottom</label>
       <input type="text" id="line2" value="CINEMA" autocomplete="off" spellcheck="true" />
-      <label for="bulk">Or paste a phrase — split into two lines</label>
-      <textarea id="bulk" placeholder="e.g. MY HONEST REACTION"></textarea>
+      <label for="bulk">Phrase</label>
+      <textarea id="bulk" placeholder="MY HONEST REACTION"></textarea>
       <div class="row">
-        <button type="button" id="split">Split phrase</button>
+        <button type="button" id="split">Split</button>
         <button type="button" id="reset" class="secondary">Reset</button>
       </div>
-      <p class="hint">Canvas uses bold Arial–class type (Helvetica Neue, then Arimo) to match typical meme.png exports—neo-grotesque, not Inter. Long phrases shrink to fit.</p>
     </div>
     <div class="panel">
       <h2>Head</h2>
-      <label for="headFile">Your photo (replaces the face)</label>
+      <label for="headFile">Photo</label>
       <input type="file" id="headFile" accept="image/*" />
       <div class="row">
-        <button type="button" id="clearHead" class="secondary">Remove photo</button>
+        <button type="button" id="clearHead" class="secondary">Clear</button>
       </div>
-      <div id="headControls" class="head-controls is-disabled">
-        <p class="hint" style="margin-top:0">Drag the oval on the preview to move. Drag the white corner handle to resize. Text stays on top.</p>
-      </div>
+      <div id="headControls" class="head-controls is-disabled"></div>
     </div>
     </div>
     <div>
@@ -419,7 +410,7 @@
       ctx.fillRect(0, 0, 400, 120);
       ctx.fillStyle = "#fff";
       ctx.font = "14px sans-serif";
-      ctx.fillText("Missing assets/base.png — add the empty image to assets/", 16, 64);
+      ctx.fillText("Missing assets/base.png", 16, 64);
     };
     baseImage.src = BASE;
     drawWhenReady();
@@ -461,7 +452,7 @@
       headControls.classList.toggle("is-disabled", !on);
     }
 
-    headFile.addEventListener("change", () => {
+    headFile.addEventListener("change", async () => {
       const f = headFile.files && headFile.files[0];
       if (customHeadObjectUrl) {
         URL.revokeObjectURL(customHeadObjectUrl);
@@ -474,7 +465,23 @@
         scheduleDraw();
         return;
       }
-      customHeadObjectUrl = URL.createObjectURL(f);
+
+      document.body.style.cursor = "wait";
+      headFile.disabled = true;
+
+      let urlToLoad = null;
+      try {
+        const mod = await import("./assets/remove-bg.mjs");
+        const blob = await mod.stripHeadBackground(f);
+        urlToLoad = URL.createObjectURL(blob);
+      } catch (_) {
+        urlToLoad = URL.createObjectURL(f);
+      } finally {
+        document.body.style.cursor = "";
+        headFile.disabled = false;
+      }
+
+      customHeadObjectUrl = urlToLoad;
       const img = new Image();
       img.onload = () => {
         customHead = img;
@@ -485,12 +492,14 @@
         scheduleDraw();
       };
       img.onerror = () => {
+        if (urlToLoad) URL.revokeObjectURL(urlToLoad);
+        customHeadObjectUrl = null;
         customHead = null;
         headTransformReady = false;
         setHeadControlsEnabled(false);
         scheduleDraw();
       };
-      img.src = customHeadObjectUrl;
+      img.src = urlToLoad;
     });
 
     document.getElementById("clearHead").addEventListener("click", () => {

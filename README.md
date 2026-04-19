@@ -15,29 +15,31 @@
 
 ---
 
-A single-page tool built around the Martin Scorsese reaction image: set custom top and bottom lines, optionally replace the face with your own photo, and download the result. Typography and placement are tuned to approximate the familiar meme look—bold sans-serif type, spacing, and text positioned on the jacket.
-
-
+A single-page tool built around the Martin Scorsese reaction image: set custom top and bottom lines, optionally replace the face with your own photo, and download the result.
 
 ---
 
 ## Run locally
 
-The project is static files only. From the project directory:
+**Recommended:** use the included server so head background removal can run (it sets headers the ONNX runtime expects):
 
 ```bash
-# Python 3
-python -m http.server 8080
+cd cinema
+python serve.py
 ```
 
-Open `http://127.0.0.1:8080/` (with `index.html` at the root, the app loads by default).
+Open **http://127.0.0.1:8765/**
+
+Plain `python -m http.server 8765` still runs the app, but face **background removal may fall back** to the original photo without transparency.
+
+Rebuild the removal bundle after changing dependencies:
 
 ```bash
-# Windows (Python launcher)
-py -m http.server 8080
+npm install
+npm run build:bg
 ```
 
-Serving over HTTP avoids cases where canvas `toDataURL` is restricted for pages loaded via `file://`.
+That writes `assets/remove-bg.mjs` (committed so `git clone` works without Node). Serving over HTTP avoids canvas export issues with `file://`.
 
 ---
 
