@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cinema meme</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Arimo ≈ Arial metrics for Linux/web; canvas prefers local Arial/Helvetica to match meme.png -->
+  <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d0d0f;
+      --panel: #16161a;
+      --border: #2a2a30;
+      --text: #ececf1;
+      --muted: #8b8b9a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem 2rem;
+    }
+    h1 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 0 0 1.25rem;
+    }
+    .layout {
+      display: grid;
+      gap: 1.25rem;
+      width: 100%;
+      max-width: 920px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 800px) {
+      .layout { grid-template-columns: minmax(280px, 380px) 1fr; align-items: start; }
+    }
+    .controls-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+    }
+    .panel h2 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin: 0 0 0.75rem;
+      font-weight: 600;
+    }
+    label {
+      display: block;
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      background: #0a0a0c;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.9375rem;
+      padding: 0.55rem 0.65rem;
+      margin-bottom: 0.75rem;
+    }
+    textarea { min-height: 4.5rem; resize: vertical; }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #4a4a58;
+    }
+    input[type="file"] {
+      width: 100%;
+      font-size: 0.8125rem;
+      margin-bottom: 0.75rem;
+    }
+    .head-controls.is-disabled {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.25rem;
+    }
+    button {
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #e8e8ed;
+      color: #111;
+    }
+    button:hover { filter: brightness(1.05); }
+    button.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin: 0.5rem 0 0;
+      line-height: 1.45;
+    }
+    .preview-wrap {
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      line-height: 0;
+    }
+    #meme {
+      width: 100%;
+      height: auto;
+      display: block;
+      vertical-align: top;
+      touch-action: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cinema meme</h1>
+  <div class="layout">
+    <div class="controls-stack">
+    <div class="panel">
+      <h2>Text</h2>
+      <label for="line1">Top line <span style="opacity:0.7">(smaller)</span></label>
+      <input type="text" id="line1" value="ABSOLUTE" autocomplete="off" spellcheck="true" />
+      <label for="line2">Bottom line <span style="opacity:0.7">(larger)</span></label>
+      <input type="text" id="line2" value="CINEMA" autocomplete="off" spellcheck="true" />
+      <label for="bulk">Or paste a phrase — split into two lines</label>
+      <textarea id="bulk" placeholder="e.g. MY HONEST REACTION"></textarea>
+      <div class="row">
+        <button type="button" id="split">Split phrase</button>
+        <button type="button" id="reset" class="secondary">Reset</button>
+      </div>
+      <p class="hint">Canvas uses bold Arial–class type (Helvetica Neue, then Arimo) to match typical meme.png exports—neo-grotesque, not Inter. Long phrases shrink to fit.</p>
+    </div>
+    <div class="panel">
+      <h2>Head</h2>
+      <label for="headFile">Your photo (replaces the face)</label>
+      <input type="file" id="headFile" accept="image/*" />
+      <div class="row">
+        <button type="button" id="clearHead" class="secondary">Remove photo</button>
+      </div>
+      <div id="headControls" class="head-controls is-disabled">
+        <p class="hint" style="margin-top:0">Drag the oval on the preview to move. Drag the white corner handle to resize. Text stays on top.</p>
+      </div>
+    </div>
+    </div>
+    <div>
+      <div class="preview-wrap">
+        <canvas id="meme"></canvas>
+      </div>
+      <div class="row" style="margin-top: 1rem;">
+        <button type="button" id="download">Download PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE = "assets/base.png";
+    /** Matched to assets/meme.png: bottom ~77% width, top ~37% width, top cap height ~1/3 of bottom */
+    const BOTTOM_WIDTH_FRAC = 0.775;
+    const TOP_WIDTH_FRAC = 0.375;
+    const TOP_VS_BOTTOM_HEIGHT = 1 / 3;
+    const BOTTOM_FONT_MAX_FRAC_H = 0.135;
+    /** Vertical center of the text block; higher = lower on image (aligned with meme.png torso placement). */
+    const CENTER_Y_FRAC = 0.82;
+    /** Extra vertical space between the two lines (fraction of bottom line size). */
+    const LINE_GAP_FRAC = 0.055;
+    /** Slight tracking between letters, as a fraction of font size. */
+    const LETTER_TRACKING_FRAC = 0.032;
+
+    /** Default oval over face on base.png (fractions of width / height). */
+    const HEAD_CX = 0.5;
+    const HEAD_CY = 0.212;
+    const HEAD_RX_FRAC = 0.128;
+    const HEAD_RY_FRAC = 0.168;
+
+    const canvas = document.getElementById("meme");
+    const ctx = canvas.getContext("2d");
+    let baseImage = new Image();
+    baseImage.crossOrigin = "anonymous";
+    let customHead = null;
+    let customHeadObjectUrl = null;
+
+    /** Oval in base-image pixel space (matches canvas internal size). */
+    let headCx = 0;
+    let headCy = 0;
+    let headRx = 0;
+    let headRy = 0;
+    let headTransformReady = false;
+
+    const HANDLE_HIT_PX = 14;
+    const MIN_HEAD_R = 10;
+
+    const line1El = document.getElementById("line1");
+    const line2El = document.getElementById("line2");
+    const bulkEl = document.getElementById("bulk");
+
+    function normalizeLine(s) {
+      return (s || "").trim().replace(/\s+/g, " ");
+    }
+
+    function splitPhraseToLines(phrase) {
+      const p = normalizeLine(phrase);
+      if (!p) return { a: "", b: "" };
+      const words = p.split(" ");
+      if (words.length === 1) return { a: "", b: words[0] };
+      const mid = Math.ceil(words.length / 2);
+      return {
+        a: words.slice(0, mid).join(" "),
+        b: words.slice(mid).join(" "),
+      };
+    }
+
+    function binarySearchFontSize(measure, minSize, maxSize) {
+      let lo = minSize;
+      let hi = maxSize;
+      for (let i = 0; i < 22; i++) {
+        const mid = (lo + hi) / 2;
+        if (measure(mid)) lo = mid;
+        else hi = mid;
+      }
+      return lo;
+    }
+
+    function resetHeadTransform(w, h) {
+      headCx = w * HEAD_CX;
+      headCy = h * HEAD_CY;
+      headRx = w * HEAD_RX_FRAC;
+      headRy = h * HEAD_RY_FRAC;
+      headTransformReady = true;
+    }
+
+    function drawCustomHead() {
+      if (!customHead || !customHead.naturalWidth || !headTransformReady) return;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(headCx, headCy, headRx, headRy, 0, 0, 2 * Math.PI);
+      ctx.clip();
+
+      const iw = customHead.naturalWidth;
+      const ih = customHead.naturalHeight;
+      const cover = Math.max((headRx * 2) / iw, (headRy * 2) / ih);
+      const dw = iw * cover;
+      const dh = ih * cover;
+      ctx.drawImage(customHead, headCx - dw / 2, headCy - dh / 2, dw, dh);
+      ctx.restore();
+    }
+
+    function drawHeadHud() {
+      if (!customHead || !headTransformReady) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(headCx, headCy, headRx, headRy, 0, 0, 2 * Math.PI);
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([7, 5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const hx = headCx + headRx;
+      const hy = headCy + headRy;
+      ctx.beginPath();
+      ctx.arc(hx, hy, 9, 0, 2 * Math.PI);
+      ctx.fillStyle = "#f3f3f8";
+      ctx.fill();
+      ctx.strokeStyle = "#1a1a1f";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function draw(forExport) {
+      const w = baseImage.naturalWidth;
+      const h = baseImage.naturalHeight;
+      if (!w || !h) return;
+
+      canvas.width = w;
+      canvas.height = h;
+      ctx.drawImage(baseImage, 0, 0);
+
+      drawCustomHead();
+
+      const topText = normalizeLine(line1El.value).toUpperCase();
+      const bottomText = normalizeLine(line2El.value).toUpperCase();
+      if (topText || bottomText) {
+
+      const bottomMaxW = w * BOTTOM_WIDTH_FRAC;
+      const topMaxW = w * TOP_WIDTH_FRAC;
+      const cx = w / 2;
+      const cy = h * CENTER_Y_FRAC;
+
+      /** Bold Arial-class neo-grotesque (meme.png / Windows exports); Arimo = metric fallback. */
+      const FONT_MEME =
+        'bold %SIZE%px Arial, Helvetica, "Helvetica Neue", "Arimo", sans-serif';
+
+      function fontMeme(size) {
+        return FONT_MEME.replace(/%SIZE%/g, String(size));
+      }
+
+      function applyTracking(size) {
+        ctx.letterSpacing = `${size * LETTER_TRACKING_FRAC}px`;
+      }
+
+      let bottomPx = 10;
+      let topPx = 10;
+
+      if (bottomText) {
+        bottomPx = binarySearchFontSize(
+          (size) => {
+            ctx.font = fontMeme(size);
+            applyTracking(size);
+            return ctx.measureText(bottomText).width <= bottomMaxW;
+          },
+          6,
+          Math.min(h * BOTTOM_FONT_MAX_FRAC_H, w * 0.2)
+        );
+      }
+
+      if (topText) {
+        const topCeiling = bottomText
+          ? bottomPx * TOP_VS_BOTTOM_HEIGHT
+          : Math.min(h * BOTTOM_FONT_MAX_FRAC_H * 0.85, w * 0.12);
+        topPx = binarySearchFontSize(
+          (size) => {
+            ctx.font = fontMeme(size);
+            applyTracking(size);
+            return ctx.measureText(topText).width <= topMaxW;
+          },
+          6,
+          topCeiling
+        );
+        if (bottomText) topPx = Math.min(topPx, bottomPx * TOP_VS_BOTTOM_HEIGHT);
+      }
+
+      const lineGap =
+        (bottomText ? bottomPx : topPx) * LINE_GAP_FRAC;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      function drawMemeLine(text, size, y) {
+        if (!text) return;
+        ctx.font = fontMeme(size);
+        applyTracking(size);
+        ctx.fillStyle = "#ffffff";
+        ctx.lineJoin = "round";
+        ctx.miterLimit = 2;
+        ctx.fillText(text, cx, y);
+      }
+
+      const hasTop = !!topText;
+      const hasBot = !!bottomText;
+      let yTop = cy;
+      let yBot = cy;
+      if (hasTop && hasBot) {
+        const blockH = topPx + lineGap + bottomPx;
+        yTop = cy - blockH / 2 + topPx / 2;
+        yBot = cy + blockH / 2 - bottomPx / 2;
+      } else if (hasTop) {
+        yTop = cy;
+      } else {
+        yBot = cy;
+      }
+
+      drawMemeLine(topText, topPx, yTop);
+      drawMemeLine(bottomText, bottomPx, yBot);
+      }
+
+      if (!forExport && customHead && headTransformReady) {
+        drawHeadHud();
+      }
+    }
+
+    function drawWhenReady() {
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => draw(false));
+      } else {
+        requestAnimationFrame(() => draw(false));
+      }
+    }
+
+    baseImage.onload = () => {
+      if (customHead && baseImage.naturalWidth && !headTransformReady) {
+        resetHeadTransform(baseImage.naturalWidth, baseImage.naturalHeight);
+      }
+      drawWhenReady();
+    };
+    baseImage.onerror = () => {
+      canvas.width = 400;
+      canvas.height = 120;
+      ctx.fillStyle = "#222";
+      ctx.fillRect(0, 0, 400, 120);
+      ctx.fillStyle = "#fff";
+      ctx.font = "14px sans-serif";
+      ctx.fillText("Missing assets/base.png — add the empty image to assets/", 16, 64);
+    };
+    baseImage.src = BASE;
+    drawWhenReady();
+
+    function scheduleDraw() {
+      requestAnimationFrame(drawWhenReady);
+    }
+
+    line1El.addEventListener("input", scheduleDraw);
+    line2El.addEventListener("input", scheduleDraw);
+
+    document.getElementById("split").addEventListener("click", () => {
+      const { a, b } = splitPhraseToLines(bulkEl.value);
+      line1El.value = a;
+      line2El.value = b;
+      scheduleDraw();
+    });
+
+    document.getElementById("reset").addEventListener("click", () => {
+      line1El.value = "ABSOLUTE";
+      line2El.value = "CINEMA";
+      bulkEl.value = "";
+      scheduleDraw();
+    });
+
+    document.getElementById("download").addEventListener("click", () => {
+      draw(true);
+      const a = document.createElement("a");
+      a.download = "cinema-meme.png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+      draw(false);
+    });
+
+    const headFile = document.getElementById("headFile");
+    const headControls = document.getElementById("headControls");
+
+    function setHeadControlsEnabled(on) {
+      headControls.classList.toggle("is-disabled", !on);
+    }
+
+    headFile.addEventListener("change", () => {
+      const f = headFile.files && headFile.files[0];
+      if (customHeadObjectUrl) {
+        URL.revokeObjectURL(customHeadObjectUrl);
+        customHeadObjectUrl = null;
+      }
+      customHead = null;
+      headTransformReady = false;
+      if (!f) {
+        setHeadControlsEnabled(false);
+        scheduleDraw();
+        return;
+      }
+      customHeadObjectUrl = URL.createObjectURL(f);
+      const img = new Image();
+      img.onload = () => {
+        customHead = img;
+        const w = baseImage.naturalWidth;
+        const h = baseImage.naturalHeight;
+        if (w && h) resetHeadTransform(w, h);
+        setHeadControlsEnabled(true);
+        scheduleDraw();
+      };
+      img.onerror = () => {
+        customHead = null;
+        headTransformReady = false;
+        setHeadControlsEnabled(false);
+        scheduleDraw();
+      };
+      img.src = customHeadObjectUrl;
+    });
+
+    document.getElementById("clearHead").addEventListener("click", () => {
+      headFile.value = "";
+      if (customHeadObjectUrl) URL.revokeObjectURL(customHeadObjectUrl);
+      customHeadObjectUrl = null;
+      customHead = null;
+      headTransformReady = false;
+      setHeadControlsEnabled(false);
+      scheduleDraw();
+    });
+
+    function canvasPointFromEvent(ev) {
+      const rect = canvas.getBoundingClientRect();
+      const sx = canvas.width / rect.width;
+      const sy = canvas.height / rect.height;
+      return {
+        x: (ev.clientX - rect.left) * sx,
+        y: (ev.clientY - rect.top) * sy,
+      };
+    }
+
+    function hitResizeHandle(x, y) {
+      const hx = headCx + headRx;
+      const hy = headCy + headRy;
+      return Math.hypot(x - hx, y - hy) <= HANDLE_HIT_PX;
+    }
+
+    function hitInsideEllipse(x, y) {
+      if (headRx <= 0 || headRy <= 0) return false;
+      const dx = (x - headCx) / headRx;
+      const dy = (y - headCy) / headRy;
+      return dx * dx + dy * dy <= 1;
+    }
+
+    let headDrag = null;
+
+    canvas.addEventListener("pointerdown", (ev) => {
+      if (!customHead || !headTransformReady) return;
+      const p = canvasPointFromEvent(ev);
+      if (hitResizeHandle(p.x, p.y)) {
+        headDrag = {
+          type: "resize",
+          startX: p.x,
+          startY: p.y,
+        };
+      } else if (hitInsideEllipse(p.x, p.y)) {
+        headDrag = {
+          type: "move",
+          startX: p.x,
+          startY: p.y,
+          origCx: headCx,
+          origCy: headCy,
+        };
+      } else {
+        return;
+      }
+      ev.preventDefault();
+      canvas.setPointerCapture(ev.pointerId);
+    });
+
+    canvas.addEventListener("pointermove", (ev) => {
+      if (!customHead || !headTransformReady) {
+        canvas.style.cursor = "";
+        return;
+      }
+      const p = canvasPointFromEvent(ev);
+      if (!headDrag) {
+        if (hitResizeHandle(p.x, p.y)) canvas.style.cursor = "nwse-resize";
+        else if (hitInsideEllipse(p.x, p.y)) canvas.style.cursor = "move";
+        else canvas.style.cursor = "";
+        return;
+      }
+      ev.preventDefault();
+      if (headDrag.type === "move") {
+        headCx = headDrag.origCx + (p.x - headDrag.startX);
+        headCy = headDrag.origCy + (p.y - headDrag.startY);
+        canvas.style.cursor = "grabbing";
+      } else {
+        headRx = Math.max(MIN_HEAD_R, p.x - headCx);
+        headRy = Math.max(MIN_HEAD_R, p.y - headCy);
+        canvas.style.cursor = "nwse-resize";
+      }
+      draw(false);
+    });
+
+    function endHeadDrag(ev) {
+      if (headDrag) {
+        try {
+          canvas.releasePointerCapture(ev.pointerId);
+        } catch (_) {}
+      }
+      headDrag = null;
+      canvas.style.cursor = "";
+    }
+
+    canvas.addEventListener("pointerup", endHeadDrag);
+    canvas.addEventListener("pointercancel", endHeadDrag);
+    canvas.addEventListener("lostpointercapture", () => {
+      headDrag = null;
+      canvas.style.cursor = "";
+    });
+  </script>
+</body>
+</html>
