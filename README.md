@@ -1,6 +1,6 @@
 <div align="center">
 
-# Cinema meme
+# Cinema
 
 <img src="assets/meme.png" alt="Example Absolute Cinema style meme" width="520" />
 
